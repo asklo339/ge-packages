@@ -22,7 +22,7 @@ else
 fi
 
 # Download libdrm source
-LIBDRM_VERSION="2.4.111"
+LIBDRM_VERSION="2.4.124"
 LIBDRM_URL="https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz"
 LIBDRM_TAR="libdrm-${LIBDRM_VERSION}.tar.xz"
 LIBDRM_DIR="libdrm-${LIBDRM_VERSION}"
@@ -35,12 +35,12 @@ echo "Extracting $LIBDRM_TAR"
 tar -xJf "$LIBDRM_TAR"
 cd "$LIBDRM_DIR"
 
-# Meson setup with target-specific options
+# Meson setup with target-specific options (corrected to use true/false/auto)
 MESON_OPTS="--prefix=$INSTALL_ROOT --cross-file=/build/$(basename "$CROSS_FILE")"
 if echo "$CROSS_FILE" | grep -q "windows"; then
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=false -Dradeon=false -Damdgpu=false -Dnouveau=false -Dvmwgfx=false -Dlibkms=false -Dtests=false"
 else
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled  -Dfreedreno=enabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=false -Dradeon=false -Damdgpu=false -Dnouveau=false -Dvmwgfx=false -Dtests=false"
     # Add CFLAGS for Android
     export CFLAGS="${CFLAGS} -DANDROID"
 fi
