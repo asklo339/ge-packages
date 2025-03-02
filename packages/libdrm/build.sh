@@ -47,7 +47,7 @@ if echo "$CROSS_FILE" | grep -q "windows"; then
     MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
 else
     # Android: Enable relevant drivers (e.g., freedreno for Qualcomm GPUs)
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dfreedreno=enabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled  -Dtests=false -Dvmwgfx=disabled -Dfreedreno=enabled -Dfreedreno-kgsl=true"
 fi
 
 # Configure with Meson
