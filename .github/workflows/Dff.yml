@@ -13,23 +13,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [aarch64, x86_64]
+        arch: [aarch64, x86_64]  # This creates two parallel jobs: one for aarch64, one for x86_64.
     steps:
+      # Step 1: Checkout the repository.
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Build the Docker image using your Dockerfile.
       - name: Build Docker image
-        run: docker build -t droidvine-compiler .
+        run: |
+          docker build -t droidvine-compiler .
 
+      # Step 3: Run the Docker container to build libdrm.
+      # Here, the run command creates an output directory specific to the architecture,
+      # then runs the container with the appropriate flag (--aarch64 or --x86_64) passed
+      # to your build-package.sh script.
       - name: Run build for libdrm on ${{ matrix.arch }}
         run: |
-          # Create an output directory specific to this architecture.
           mkdir -p output/${{ matrix.arch }}
-          # Run the container, mounting the output folder.
-          # The build-package.sh script should support the --aarch64 or --x86_64 flag.
           docker run --rm -v "${{ github.workspace }}/output/${{ matrix.arch }}:/output" droidvine-compiler \
             ./build-package.sh --${{ matrix.arch }} libdrm
 
+      # Step 4: Upload the build artifacts for the specific architecture.
       - name: Upload artifact for ${{ matrix.arch }}
         uses: actions/upload-artifact@v3
         with:
