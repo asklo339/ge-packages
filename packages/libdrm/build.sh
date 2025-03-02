@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Add the Android flag to CFLAGS so the code knows we're targeting Android.
+export CFLAGS="${CFLAGS} -DANDROID"
+
 CROSS_FILE=$1
 INSTALL_ROOT=$2
 TOOLCHAIN=$3
