@@ -1,58 +1,51 @@
 #!/bin/bash
 set -e
 
-CROSS_FILE=$1
-INSTALL_ROOT=$2
-TOOLCHAIN=$3
-USE_MINGW=$4  # Optional flag to force MinGW
+# packages/libdrm/build.sh
+# This script builds libdrm using the Meson build system.
+#
+# It applies any available patches, configures the build with Meson,
+# compiles using ninja, and installs libdrm to the CUSTOM_PREFIX directory.
+#
+# Environment Variables:
+#   CUSTOM_PREFIX - The target installation prefix (e.g., /data/data/com.gebox.emu/files/usr/bionic)
+#   ANDROID_NDK   - (Optional) The path to the Android NDK if required.
 
-# Determine toolchain
-if [ "$USE_MINGW" = "mingw" ]; then
-    echo "Using MinGW toolchain explicitly"
-    export PATH="$TOOLCHAIN:$PATH"
-    COMPILER_PREFIX="x86_64-w64-mingw32"
-elif [ -z "$USE_MINGW" ] && echo "$CROSS_FILE" | grep -q "windows"; then
-    echo "Defaulting to MinGW for Windows target"
-    export PATH="$TOOLCHAIN:$PATH"
-    COMPILER_PREFIX="x86_64-w64-mingw32"
-else
-    echo "Using NDK toolchain for Android"
-    export PATH="$TOOLCHAIN:$PATH"
-    COMPILER_PREFIX="aarch64-linux-android"
+echo "Starting build for libdrm using Meson..."
+
+# Ensure the CUSTOM_PREFIX is set, default if not.
+if [ -z "${CUSTOM_PREFIX}" ]; then
+  echo "CUSTOM_PREFIX not set; defaulting to /data/data/com.gebox.emu/files/usr/bionic"
+  CUSTOM_PREFIX="/data/data/com.gebox.emu/files/usr/bionic"
+fi
+export CUSTOM_PREFIX
+echo "Installation prefix: ${CUSTOM_PREFIX}"
+
+# Optionally apply patches if any exist in the patches/ directory.
+if [ -d ../patches ]; then
+  echo "Applying patches..."
+  for patch in ../patches/*.patch; do
+    if [ -f "$patch" ]; then
+      echo "Applying patch: $patch"
+      patch -p1 < "$patch"
+    fi
+  done
 fi
 
-# Download libdrm source
-LIBDRM_VERSION="2.4.124"
-LIBDRM_URL="https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz"
-LIBDRM_TAR="libdrm-${LIBDRM_VERSION}.tar.xz"
-LIBDRM_DIR="libdrm-${LIBDRM_VERSION}"
+# Create and move into a separate build directory.
+mkdir -p build && cd build
 
-echo "Downloading libdrm ${LIBDRM_VERSION} from ${LIBDRM_URL}"
-wget -O "$LIBDRM_TAR" "$LIBDRM_URL"
+# Configure the build with Meson.
+# You can pass additional parameters if necessary (e.g., toolchain files for cross-compilation).
+echo "Configuring libdrm with Meson..."
+meson setup --prefix="${CUSTOM_PREFIX}" --buildtype=release ..
 
-# Extract the source
-echo "Extracting $LIBDRM_TAR"
-tar -xJf "$LIBDRM_TAR"
-cd "$LIBDRM_DIR"
+# Build the project using Ninja.
+echo "Building libdrm..."
+ninja -j$(nproc)
 
-# Meson setup with target-specific options
-# Adjust the CROSS_FILE path to be absolute from /build
-MESON_OPTS="--prefix=$INSTALL_ROOT --cross-file=/build/$(basename "$CROSS_FILE")"
-if echo "$CROSS_FILE" | grep -q "windows"; then
-    # Windows: Disable X11 and other Linux-specific features
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
-else
-    # Android: Enable relevant drivers (e.g., freedreno for Qualcomm GPUs)
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dfreedreno=enabled"
-fi
+# Install the project into the CUSTOM_PREFIX.
+echo "Installing libdrm to ${CUSTOM_PREFIX}..."
+ninja install
 
-# Configure with Meson
-echo "Configuring libdrm with Meson"
-CFLAGS="${CFLAGS} -DANDROID" meson setup build $MESON_OPTS
-
-# Build and install
-echo "Building and installing libdrm"
-ninja -C build
-DESTDIR="$INSTALL_ROOT" ninja -C build install
-
-echo "Built and installed libdrm into $INSTALL_ROOT"
+echo "libdrm build and installation complete."
