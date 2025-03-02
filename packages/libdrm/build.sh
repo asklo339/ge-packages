@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-# Add the Android flag to CFLAGS so the code knows we're targeting Android.
-
-
 CROSS_FILE=$1
 INSTALL_ROOT=$2
 TOOLCHAIN=$3
@@ -25,7 +22,7 @@ else
 fi
 
 # Download libdrm source
-LIBDRM_VERSION="2.4.124"
+LIBDRM_VERSION="2.4.111"
 LIBDRM_URL="https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz"
 LIBDRM_TAR="libdrm-${LIBDRM_VERSION}.tar.xz"
 LIBDRM_DIR="libdrm-${LIBDRM_VERSION}"
@@ -39,14 +36,13 @@ tar -xJf "$LIBDRM_TAR"
 cd "$LIBDRM_DIR"
 
 # Meson setup with target-specific options
-# Adjust the CROSS_FILE path to be absolute from /build
 MESON_OPTS="--prefix=$INSTALL_ROOT --cross-file=/build/$(basename "$CROSS_FILE")"
 if echo "$CROSS_FILE" | grep -q "windows"; then
-    # Windows: Disable X11 and other Linux-specific features
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dlibkms=disabled"
 else
-    # Android: Enable relevant drivers (e.g., freedreno for Qualcomm GPUs)
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled  -Dtests=false -Dvmwgfx=disabled -Dfreedreno=enabled -Dfreedreno-kgsl=true"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dlibkms=enabled -Dfreedreno=enabled"
+    # Add CFLAGS for Android
+    export CFLAGS="${CFLAGS} -DANDROID"
 fi
 
 # Configure with Meson
