@@ -1,0 +1,59 @@
+name: Build my-compiler
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target (android-aarch64 or windows-x86_64)'
+        required: true
+        default: 'android-aarch64'
+      package:
+        description: 'Optional package to build (e.g., libdrm)'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        target: [android-aarch64, windows-x86_64]
+        include:
+          - target: ${{ github.event.inputs.target }}
+            package: ${{ github.event.inputs.package || '' }}
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t my-compiler .
+
+      # Run the build for the specified target and package
+      - name: Build root filesystem
+        run: |
+          if [ -n "${{ matrix.package }}" ]; then
+            docker run --rm -v $(pwd)/data:/build/data my-compiler bash build-rootfs.sh ${{ matrix.target }} ${{ matrix.package }}
+          else
+            docker run --rm -v $(pwd)/data:/build/data my-compiler bash build-rootfs.sh ${{ matrix.target }}
+          fi
+
+      # Upload the artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rootfs-${{ matrix.target }}-${{ matrix.package || 'all' }}
+          path: data/
+          retention-days: 7
