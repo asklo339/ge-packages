@@ -18,7 +18,7 @@ case "$TARGET" in
 esac
 
 # Set up the installation root directory
-INSTALL_ROOT="$PWD/data/data/com.gebox.emu/files/usr/bionic"
+INSTALL_ROOT="/data/data/com.gebox.emu/files/usr/bionic"
 mkdir -p "$INSTALL_ROOT"
 
 # Build each package
