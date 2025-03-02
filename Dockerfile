@@ -19,6 +19,9 @@ RUN bash mingw-setup.sh
 COPY ndk-setup.sh .
 RUN bash ndk-setup.sh
 
+COPY . .
+RUN chmod +x packages/*/build.sh
+
 # Set working directory
 WORKDIR /build
 
