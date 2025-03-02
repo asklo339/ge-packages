@@ -43,12 +43,12 @@ if echo "$CROSS_FILE" | grep -q "windows"; then
     MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
 else
     # Android: Enable relevant drivers (e.g., freedreno for Qualcomm GPUs)
-   CFLAGS="${CFLAGS} -DANDROID" MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dfreedreno=enabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dfreedreno=enabled"
 fi
 
 # Configure with Meson
 echo "Configuring libdrm with Meson"
-meson setup build $MESON_OPTS
+CFLAGS="${CFLAGS} -DANDROID" meson setup build $MESON_OPTS
 
 # Build and install
 echo "Building and installing libdrm"
