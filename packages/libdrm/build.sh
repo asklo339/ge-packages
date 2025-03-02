@@ -38,9 +38,9 @@ cd "$LIBDRM_DIR"
 # Meson setup with target-specific options
 MESON_OPTS="--prefix=$INSTALL_ROOT --cross-file=/build/$(basename "$CROSS_FILE")"
 if echo "$CROSS_FILE" | grep -q "windows"; then
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dlibkms=disabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
 else
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dlibkms=enabled -Dfreedreno=enabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled  -Dfreedreno=enabled"
     # Add CFLAGS for Android
     export CFLAGS="${CFLAGS} -DANDROID"
 fi
