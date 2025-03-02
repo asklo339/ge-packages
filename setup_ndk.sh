@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NDK_VERSION="r26b"
+NDK_VERSION="r26d"
 NDK_URL="https://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux.zip"
 NDK_DIR="$HOME/android-ndk-${NDK_VERSION}"
 TOOLCHAIN="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64"
