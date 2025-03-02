@@ -1,38 +1,37 @@
+# Dockerfile
 FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install basic tools
+# Install essential build tools and dependencies.
 RUN apt-get update && apt-get install -y \
     build-essential \
-    meson \
-    ninja-build \
+    curl \
     wget \
-    tar \
-    xz-utils \
-    python3 \
-    python3-pip \
     unzip \
-    && rm -rf /var/lib/apt/lists/*
+    pkg-config \
+    autoconf \
+    automake \
+    libtool \
+    cmake \
+    ninja-build \
+    python3 \
+    python3-pip
 
+# Set a custom installation prefix.
+ENV CUSTOM_PREFIX=/data/data/com.gebox.emu/files/usr/bionic
+RUN mkdir -p ${CUSTOM_PREFIX}
 
-# Upgrade Meson to a version >= 0.59
-RUN pip3 install --no-cache-dir meson==1.5.1
+# Copy the setup scripts into the container.
+COPY ndk-setup.sh /scripts/ndk-setup.sh
+COPY mingw-setup.sh /scripts/mingw-setup.sh
+RUN chmod +x /scripts/ndk-setup.sh /scripts/mingw-setup.sh
 
-# Set up MinGW
-COPY mingw-setup.sh .
-RUN bash mingw-setup.sh
+# Optionally run the NDK and mingw setup scripts.
+RUN /scripts/ndk-setup.sh && /scripts/mingw-setup.sh
 
-# Set up Android NDK
-COPY ndk-setup.sh .
-RUN bash ndk-setup.sh
-
+# Copy the rest of the repository into the container.
+WORKDIR /workspace
 COPY . .
-RUN chmod +x packages/*/build.sh
 
-# Set working directory
-WORKDIR /build
-
-# Copy project files
-COPY . .
-
-# Default command
-CMD ["bash", "build-rootfs.sh", "windows-x86_64"]
+# Set the default command to build the "sample-package".
+CMD ["bash", "build-package.sh", "sample-package"]
