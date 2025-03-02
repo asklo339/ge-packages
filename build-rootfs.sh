@@ -22,6 +22,7 @@ INSTALL_ROOT="$PWD/data/data/com.gebox.emu/files/usr/bionic"
 mkdir -p "$INSTALL_ROOT"
 
 # Build each package
+chmod +x build.sh
 for pkg in packages/*; do
     if [ -d "$pkg" ] && [ -f "$pkg/build.sh" ]; then
         pkg_name=$(basename "$pkg")
