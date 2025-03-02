@@ -1,51 +1,53 @@
 #!/bin/bash
-set -e
 
-# packages/libdrm/build.sh
-# This script builds libdrm using the Meson build system.
-#
-# It applies any available patches, configures the build with Meson,
-# compiles using ninja, and installs libdrm to the CUSTOM_PREFIX directory.
-#
-# Environment Variables:
-#   CUSTOM_PREFIX - The target installation prefix (e.g., /data/data/com.gebox.emu/files/usr/bionic)
-#   ANDROID_NDK   - (Optional) The path to the Android NDK if required.
+# Source NDK setup
+source ../../setup_ndk.sh
 
-echo "Starting build for libdrm using Meson..."
+# Variables
+LIBDRM_VERSION="2.4.120"  # Check latest at https://dri.freedesktop.org/libdrm/
+LIBDRM_URL="https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz"
+INSTALL_PREFIX="/data/data/com.gebox.emu/files/usr/bionic"
+BUILD_DIR="$(pwd)/build"
+OUTPUT_DIR="$(pwd)/output"
 
-# Ensure the CUSTOM_PREFIX is set, default if not.
-if [ -z "${CUSTOM_PREFIX}" ]; then
-  echo "CUSTOM_PREFIX not set; defaulting to /data/data/com.gebox.emu/files/usr/bionic"
-  CUSTOM_PREFIX="/data/data/com.gebox.emu/files/usr/bionic"
-fi
-export CUSTOM_PREFIX
-echo "Installation prefix: ${CUSTOM_PREFIX}"
-
-# Optionally apply patches if any exist in the patches/ directory.
-if [ -d ../patches ]; then
-  echo "Applying patches..."
-  for patch in ../patches/*.patch; do
-    if [ -f "$patch" ]; then
-      echo "Applying patch: $patch"
-      patch -p1 < "$patch"
-    fi
-  done
+# Download and extract libdrm
+if [ ! -d "libdrm-${LIBDRM_VERSION}" ]; then
+    echo "Downloading libdrm ${LIBDRM_VERSION}..."
+    wget -q "$LIBDRM_URL"
+    tar -xf "libdrm-${LIBDRM_VERSION}.tar.xz"
+    rm "libdrm-${LIBDRM_VERSION}.tar.xz"
 fi
 
-# Create and move into a separate build directory.
-mkdir -p build && cd build
+# Apply patches if they exist
+if [ -d "patches" ]; then
+    cd "libdrm-${LIBDRM_VERSION}"
+    for patch in ../patches/*.patch; do
+        if [ -f "$patch" ]; then
+            echo "Applying patch: $patch"
+            patch -p1 < "$patch"
+        fi
+    done
+    cd ..
+fi
 
-# Configure the build with Meson.
-# You can pass additional parameters if necessary (e.g., toolchain files for cross-compilation).
-echo "Configuring libdrm with Meson..."
-meson setup --prefix="${CUSTOM_PREFIX}" --buildtype=release ..
+# Configure with Meson
+cd "libdrm-${LIBDRM_VERSION}"
+meson setup "$BUILD_DIR" \
+    --cross-file ../../cross-android.txt \
+    --prefix="$INSTALL_PREFIX" \
+    -Ddefault_library=shared \
+    -Dintel=disabled \
+    -Dradeon=enabled \
+    -Damdgpu=enabled \
+    -Dnouveau=enabled \
+    -Dvmwgfx=disabled \
+    -Dtests=false
 
-# Build the project using Ninja.
-echo "Building libdrm..."
-ninja -j$(nproc)
+# Build and install
+ninja -C "$BUILD_DIR"
+mkdir -p "$OUTPUT_DIR"
+ninja -C "$BUILD_DIR" install DESTDIR="$OUTPUT_DIR"
 
-# Install the project into the CUSTOM_PREFIX.
-echo "Installing libdrm to ${CUSTOM_PREFIX}..."
-ninja install
-
-echo "libdrm build and installation complete."
+# Package the output
+cd "$OUTPUT_DIR"
+tar -czf "../../libdrm-rootfs.tar.gz" .
