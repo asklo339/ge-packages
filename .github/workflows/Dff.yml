@@ -1,42 +1,37 @@
-name: Build libdrm for aarch64 and x86_64
+name: Build Android C Library Package
 
 on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to build (e.g., libdrm)'
+        required: true
+        default: 'libdrm'
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [aarch64, x86_64]  # This creates two parallel jobs: one for aarch64, one for x86_64.
     steps:
-      # Step 1: Checkout the repository.
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Step 2: Build the Docker image using your Dockerfile.
-      - name: Build Docker image
+      - name: Install dependencies
         run: |
-          docker build -t droidvine-compiler .
+          sudo apt-get update
+          sudo apt-get install -y wget unzip xz-utils python3-pip patch
+          pip3 install meson ninja
 
-      # Step 3: Run the Docker container to build libdrm.
-      # Here, the run command creates an output directory specific to the architecture,
-      # then runs the container with the appropriate flag (--aarch64 or --x86_64) passed
-      # to your build-package.sh script.
-      - name: Run build for libdrm on ${{ matrix.arch }}
+      - name: Build package
         run: |
-          mkdir -p output/${{ matrix.arch }}
-          docker run --rm -v "${{ github.workspace }}/output/${{ matrix.arch }}:/output" droidvine-compiler \
-            ./build-package.sh --${{ matrix.arch }} libdrm
+          chmod +x setup_ndk.sh build.sh packages/*/build.sh
+          ./build.sh "${{ github.event.inputs.package }}"
 
-      # Step 4: Upload the build artifacts for the specific architecture.
-      - name: Upload artifact for ${{ matrix.arch }}
-        uses: actions/upload-artifact@v3
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: libdrm-${{ matrix.arch }}
-          path: output/${{ matrix.arch }}
+          name: ${{ github.event.inputs.package }}-rootfs
+          path: ${{ github.event.inputs.package }}-rootfs.tar.gz
