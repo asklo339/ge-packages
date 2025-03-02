@@ -1,0 +1,37 @@
+name: Build libdrm for aarch64 and x86_64
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64, x86_64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t droidvine-compiler .
+
+      - name: Run build for libdrm on ${{ matrix.arch }}
+        run: |
+          # Create an output directory specific to this architecture.
+          mkdir -p output/${{ matrix.arch }}
+          # Run the container, mounting the output folder.
+          # The build-package.sh script should support the --aarch64 or --x86_64 flag.
+          docker run --rm -v "${{ github.workspace }}/output/${{ matrix.arch }}:/output" droidvine-compiler \
+            ./build-package.sh --${{ matrix.arch }} libdrm
+
+      - name: Upload artifact for ${{ matrix.arch }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: libdrm-${{ matrix.arch }}
+          path: output/${{ matrix.arch }}
