@@ -9,7 +9,15 @@ fi
 PACKAGE="$1"
 
 echo "Starting build process for $PACKAGE..."
+echo "Current directory: $(pwd)"  # Debug: Show working directory
 if [ -d "packages/$PACKAGE" ]; then
+    # Verify cross-android.txt exists
+    if [ ! -f "cross-android.txt" ]; then
+        echo "Error: cross-android.txt not found in root directory!"
+        exit 1
+    else
+        echo "Found cross-android.txt in $(pwd)"
+    fi
     cd "packages/$PACKAGE"
     ./build.sh
     cd ../..
