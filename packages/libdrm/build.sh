@@ -22,7 +22,7 @@ else
 fi
 
 # Download libdrm source
-LIBDRM_VERSION="2.4.123"
+LIBDRM_VERSION="2.4.124"
 LIBDRM_URL="https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz"
 LIBDRM_TAR="libdrm-${LIBDRM_VERSION}.tar.xz"
 LIBDRM_DIR="libdrm-${LIBDRM_VERSION}"
