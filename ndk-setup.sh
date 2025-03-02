@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NDK_VERSION="r26b"  # Adjust to latest if needed
+NDK_VERSION="r26b"
 NDK_URL="https://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux.zip"
 NDK_DIR="$HOME/android-ndk-${NDK_VERSION}"
 TOOLCHAIN="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64"
@@ -13,9 +13,9 @@ if [ ! -d "$NDK_DIR" ]; then
     rm ndk.zip
 fi
 
-# Install Meson if not present
+# Install Meson and Ninja
 if ! command -v meson &> /dev/null; then
-    echo "Installing Meson..."
+    echo "Installing Meson and Ninja..."
     sudo apt-get update
     sudo apt-get install -y python3-pip
     pip3 install meson ninja
@@ -25,11 +25,5 @@ fi
 export NDK_PATH="$NDK_DIR"
 export PATH="$TOOLCHAIN/bin:$PATH"
 export SYSROOT="$NDK_PATH/sysroot"
-export CC="aarch64-linux-android21-clang"
-export CXX="aarch64-linux-android21-clang++"
-export AR="llvm-ar"
-export LD="ld"
-export CFLAGS="-fPIC -I$SYSROOT/usr/include -I$SYSROOT/usr/include/aarch64-linux-android"
-export LDFLAGS="-L$SYSROOT/usr/lib/aarch64-linux-android/21"
 
-echo "NDK and Meson setup complete."
+echo "NDK setup complete."
