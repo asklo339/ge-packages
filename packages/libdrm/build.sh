@@ -35,14 +35,15 @@ echo "Extracting $LIBDRM_TAR"
 tar -xJf "$LIBDRM_TAR"
 cd "$LIBDRM_DIR"
 
-# Meson setup with target-specific options (corrected to use true/false/auto)
+# Meson setup with target-specific options
+# Adjust the CROSS_FILE path to be absolute from /build
 MESON_OPTS="--prefix=$INSTALL_ROOT --cross-file=/build/$(basename "$CROSS_FILE")"
 if echo "$CROSS_FILE" | grep -q "windows"; then
-    MESON_OPTS="$MESON_OPTS -Dintel=false -Dradeon=false -Damdgpu=false -Dnouveau=false -Dvmwgfx=false -Dlibkms=false -Dtests=false"
+    # Windows: Disable X11 and other Linux-specific features
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
 else
-    MESON_OPTS="$MESON_OPTS -Dintel=false -Dradeon=false -Damdgpu=false -Dnouveau=false -Dvmwgfx=false -Dtests=false"
-    # Add CFLAGS for Android
-    export CFLAGS="${CFLAGS} -DANDROID"
+    # Android: Enable relevant drivers (e.g., freedreno for Qualcomm GPUs)
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dfreedreno=enabled"
 fi
 
 # Configure with Meson
