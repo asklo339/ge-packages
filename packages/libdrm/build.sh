@@ -40,10 +40,10 @@ cd "$LIBDRM_DIR"
 MESON_OPTS="--prefix=$INSTALL_ROOT --cross-file=/build/$(basename "$CROSS_FILE")"
 if echo "$CROSS_FILE" | grep -q "windows"; then
     # Windows: Disable X11 and other Linux-specific features
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dlibkms=disabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled"
 else
     # Android: Enable relevant drivers (e.g., freedreno for Qualcomm GPUs)
-    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dlibkms=enabled -Dfreedreno=enabled"
+    MESON_OPTS="$MESON_OPTS -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled -Dvmwgfx=disabled -Dfreedreno=enabled"
 fi
 
 # Configure with Meson
