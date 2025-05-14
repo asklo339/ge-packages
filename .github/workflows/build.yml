@@ -1,0 +1,42 @@
+name: Build Android Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to build (e.g., zlib, hello, android-shmem, all)'
+        required: true
+        default: 'all'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl wget unzip tar
+
+      # Ensure scripts are executable
+      - name: Set script permissions
+        run: |
+          chmod +x prop.sh build.sh packages/*/build.sh
+
+      # Run build.sh with user input
+      - name: Build package
+        run: |
+          sudo ./build.sh ${{ github.event.inputs.package }}
+
+      # Upload build artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: $HOME/.package-builder/output/
+          if-no-files-found: warn
