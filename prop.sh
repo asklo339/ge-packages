@@ -10,6 +10,9 @@ export NDK="$BUILD_TOPDIR/ndk/android-ndk-r27c"
 # Sources directory for downloaded packages
 export SOURCES_DIR="$BUILD_TOPDIR/sources"
 
+# Build directory for compilation
+export BUILD_DIR="$BUILD_TOPDIR/build"
+
 # Android API level
 export API_LEVEL=33
 
