@@ -31,9 +31,7 @@ jobs:
       # Run build.sh with user input
       - name: Build package
         run: |
-          # Set PREFIX to a local directory to mimic Android path
-          export PREFIX=$HOME/install/data/data/com.gebox.emu/files/usr/bionic
-          sudo ./build.sh ${{ github.event.inputs.package }}
+           sudo ./build.sh ${{ github.event.inputs.package }}
 
       # Create .tar.xz archive of /data/data/com.gebox.emu/files/
       - name: Create tar.xz archive
@@ -41,9 +39,9 @@ jobs:
           # Ensure the install directory exists
           if [ -d "$HOME/install/data/data/com.gebox.emu/files" ]; then
             # Create archive
-           sudo tar -C $HOME/install -cJf ${{ github.event.inputs.package }}-files.tar.xz data/data/com.gebox.emu/files
+           sudo tar -cJf ${{ github.event.inputs.package }}-files.tar.xz /data/data/com.gebox.emu/files
           else
-            echo "Error: Install directory $HOME/install/data/data/com.gebox.emu/files not found"
+            echo "Error: Install directory /data/data/com.gebox.emu/files not found"
             exit 1
           fi
 
