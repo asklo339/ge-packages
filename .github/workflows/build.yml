@@ -42,7 +42,7 @@ jobs:
         run: |
           # Verify install directory
           if [ -d "/data/data/com.gebox.emu" ]; then
-            suod tar -C /data/data -cJf ${{ github.event.inputs.package }}-files.tar.xz com.gebox.emu
+            sudo tar -C /data/data -cJf ${{ github.event.inputs.package }}-files.tar.xz com.gebox.emu
           else
             echo "Error: Install directory /data/data/com.gebox.emu not found"
             exit 1
