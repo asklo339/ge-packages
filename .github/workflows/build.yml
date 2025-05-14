@@ -1,4 +1,4 @@
-name: Build and Upload Android Package
+name: Build and Upload Android Package Archive
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wget unzip tar
+          sudo apt-get install -y curl wget unzip tar xz-utils
 
       # Ensure scripts are executable
       - name: Set script permissions
@@ -31,13 +31,26 @@ jobs:
       # Run build.sh with user input
       - name: Build package
         run: |
-          sudo ./build.sh ${{ github.event.inputs.package }}
+          # Set PREFIX to a local directory to mimic Android path
+          export PREFIX=$HOME/install/data/data/com.gebox.emu/files/usr/bionic
+          ./build.sh ${{ github.event.inputs.package }}
 
-      # Upload built package artifacts
-      - name: Upload package artifacts
+      # Create .tar.xz archive of /data/data/com.gebox.emu/files/
+      - name: Create tar.xz archive
+        run: |
+          # Ensure the install directory exists
+          if [ -d "$HOME/install/data/data/com.gebox.emu/files" ]; then
+            # Create archive
+            tar -C $HOME/install -cJf ${{ github.event.inputs.package }}-files.tar.xz data/data/com.gebox.emu/files
+          else
+            echo "Error: Install directory $HOME/install/data/data/com.gebox.emu/files not found"
+            exit 1
+          fi
+
+      # Upload .tar.xz artifact
+      - name: Upload package archive
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.package }}-output
-          path: |
-            ${{ github.event.inputs.package == 'all' && '$HOME/.package-builder/output/*' || '$HOME/.package-builder/output/${{ github.event.inputs.package }}/*' }}
+          name: ${{ github.event.inputs.package }}-files
+          path: ${{ github.event.inputs.package }}-files.tar.xz
           if-no-files-found: error
