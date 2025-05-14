@@ -28,20 +28,23 @@ jobs:
         run: |
           chmod +x prop.sh build.sh packages/*/build.sh
 
-      # Run build.sh with user input
+      # Run build.sh with user input, handling hello dependency
       - name: Build package
         run: |
-           sudo ./build.sh ${{ github.event.inputs.package }}
+          # Build android-shmem first if building hello
+          if [ "${{ github.event.inputs.package }}" = "hello" ]; then
+            ./build.sh android-shmem
+          fi
+          sudo ./build.sh ${{ github.event.inputs.package }}
 
-      # Create .tar.xz archive of /data/data/com.gebox.emu/files/
+      # Create .tar.xz archive of /data/data/com.gebox.emu/
       - name: Create tar.xz archive
         run: |
-          # Ensure the install directory exists
-          if [ -d "$HOME/install/data/data/com.gebox.emu/files" ]; then
-            # Create archive
-           sudo tar -cJf ${{ github.event.inputs.package }}-files.tar.xz /data/data/com.gebox.emu/files
+          # Verify install directory
+          if [ -d "/data/data/com.gebox.emu" ]; then
+            suod tar -C /data/data -cJf ${{ github.event.inputs.package }}-files.tar.xz com.gebox.emu
           else
-            echo "Error: Install directory /data/data/com.gebox.emu/files not found"
+            echo "Error: Install directory /data/data/com.gebox.emu not found"
             exit 1
           fi
 
