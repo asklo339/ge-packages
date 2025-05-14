@@ -37,7 +37,7 @@ source ./prop.sh
 
 # Setup NDK
 setup_ndk() {
-    local ndk_version="r26d"
+    local ndk_version="r27c"
     local ndk_url="https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux.zip"
     local ndk_zip="$BUILD_TOPDIR/ndk/android-ndk-${ndk_version}.zip"
     local ndk_dir="$BUILD_TOPDIR/ndk"
