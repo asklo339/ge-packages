@@ -5,7 +5,7 @@
 export BUILD_TOPDIR="$HOME/.package-builder"
 
 # Android NDK path (downloaded)
-export NDK="$BUILD_TOPDIR/ndk/android-ndk-r26d"
+export NDK="$BUILD_TOPDIR/ndk/android-ndk-r27c"
 
 # Sources directory for downloaded packages
 export SOURCES_DIR="$BUILD_TOPDIR/sources"
