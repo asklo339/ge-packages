@@ -14,12 +14,12 @@ PKG_SRC_DIR="$BUILD_DIR/xorgproto/xorgproto-${PKG_VERSION}"
 PKG_BUILD_DIR="$BUILD_DIR/xorgproto"
 
 # Source environment
-if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ]; then
-    echo "Error: PREFIX, SOURCES_DIR, or BUILD_DIR not set. Source prop.sh first."
+if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$BUILD_TOPDIR" ]; then
+    echo "Error: PREFIX, SOURCES_DIR, BUILD_DIR, or BUILD_TOPDIR not set. Source prop.sh first."
     exit 1
 fi
 
-# Path to Meson cross file
+# Path to Meson cross file (relative to repository root)
 CROSS_FILE="$BUILD_TOPDIR/cross-aarch64-linux-android.ini"
 
 # Check if Meson and Ninja are installed
