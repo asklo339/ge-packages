@@ -20,7 +20,7 @@ if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$BU
 fi
 
 # Path to Meson cross file
-CROSS_FILE="/root/ge-packages/cross-aarch64-linux-android.ini"
+CROSS_FILE="/home/runner/work/ge-packages/cross-aarch64-linux-android.ini"
 
 # Check if Meson and Ninja are installed
 if ! command -v meson >/dev/null 2>&1 || ! command -v ninja >/dev/null 2>&1; then
