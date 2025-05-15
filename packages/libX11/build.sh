@@ -1,21 +1,36 @@
 #!/bin/bash
 set -e
 
-# packages/libX11/build.sh: Build script for libX11 package for Android ARM64
+# packages/xorgproto/build.sh: Build script for xorgproto package using Meson
 
 # Package metadata
-PKG_NAME="libX11"
-PKG_VERSION="1.8.7"
-PKG_DESCRIPTION="X11 client-side library for Wine X11 support"
+PKG_NAME="xorgproto"
+PKG_VERSION="2023.2"
+PKG_DESCRIPTION="X11 protocol headers for Wine X11 support"
 PKG_LICENSE="MIT"
-PKG_SRC_URL="https://www.x.org/releases/individual/lib/libX11-${PKG_VERSION}.tar.gz"
-PKG_SRC_FILE="$SOURCES_DIR/libX11-${PKG_VERSION}.tar.gz"
-PKG_SRC_DIR="$BUILD_DIR/libX11/libX11-${PKG_VERSION}"
-PKG_BUILD_DIR="$BUILD_DIR/libX11"
+PKG_SRC_URL="https://www.x.org/releases/individual/proto/xorgproto-${PKG_VERSION}.tar.gz"
+PKG_SRC_FILE="$SOURCES_DIR/xorgproto-${PKG_VERSION}.tar.gz"
+PKG_SRC_DIR="$BUILD_DIR/xorgproto/xorgproto-${PKG_VERSION}"
+PKG_BUILD_DIR="$BUILD_DIR/xorgproto-build"
 
 # Source environment
-if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ]; then
-    echo "Error: PREFIX, SOURCES_DIR, or BUILD_DIR not set. Source prop.sh first."
+if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$BUILD_TOPDIR" ]; then
+    echo "Error: PREFIX, SOURCES_DIR, BUILD_DIR, or BUILD_TOPDIR not set. Source prop.sh first."
+    exit 1
+fi
+
+# Path to Meson cross file
+CROSS_FILE="$BUILD_TOPDIR/cross-aarch64-linux-android.ini"
+
+# Check if Meson and Ninja are installed
+if ! command -v meson >/dev/null 2>&1 || ! command -v ninja >/dev/null 2>&1; then
+    echo "Error: Meson and Ninja are required. Install them first (e.g., pip install meson ninja)."
+    exit 1
+fi
+
+# Check if cross file exists
+if [ ! -f "$CROSS_FILE" ]; then
+    echo "Error: Meson cross file $CROSS_FILE not found."
     exit 1
 fi
 
@@ -29,41 +44,37 @@ if [ ! -f "$PKG_SRC_FILE" ]; then
     fi
 fi
 
-# Create build directory
+# Create directories
+mkdir -p "$BUILD_DIR/xorgproto"
 mkdir -p "$PKG_BUILD_DIR"
-cd "$PKG_BUILD_DIR"
 
 # Extract source
 if [ ! -d "$PKG_SRC_DIR" ]; then
     echo "Extracting $PKG_SRC_FILE..."
-    tar -xzf "$PKG_SRC_FILE" || { echo "Error: Failed to extract $PKG_NAME source"; exit 1; }
+    tar -xzf "$PKG_SRC_FILE" -C "$BUILD_DIR/xorgproto" || { echo "Error: Failed to extract $PKG_NAME source"; exit 1; }
 fi
 
-# Build
+# Configure with Meson
 cd "$PKG_SRC_DIR"
-echo "Configuring $PKG_NAME..."
-export CC="$CC"
-export CFLAGS="$CFLAGS -I$PREFIX/include"
-export LDFLAGS="$LDFLAGS -L$PREFIX/lib"
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
-./configure \
+echo "Configuring $PKG_NAME with Meson..."
+meson setup "$PKG_BUILD_DIR" \
     --prefix="$PREFIX" \
-    --host=aarch64-linux-android \
-    --enable-static \
-    --disable-shared \
-    || { echo "Error: Failed to configure $PKG_NAME"; exit 1; }
+    --cross-file="$CROSS_FILE" \
+    -Ddefault_library=static \
+    || { echo "Error: Failed to configure $PKG_NAME"; cat "$PKG_BUILD_DIR/meson-logs/meson-log.txt"; exit 1; }
 
+# Build
 echo "Building $PKG_NAME..."
-make -j"$MAKE_PROCESSES" || { echo "Error: Failed to build $PKG_NAME"; exit 1; }
+ninja -C "$PKG_BUILD_DIR" || { echo "Error: Failed to build $PKG_NAME"; exit 1; }
 
 # Install
 echo "Installing $PKG_NAME to $PREFIX..."
-make install || { echo "Error: Failed to install $PKG_NAME"; exit 1; }
+ninja -C "$PKG_BUILD_DIR" install || { echo "Error: Failed to install $PKG_NAME"; exit 1; }
 
 # Verify installation
 echo "Verifying $PKG_NAME installation..."
-if [ -f "$PREFIX/lib/libX11.a" ]; then
-    echo "$PKG_NAME installed successfully at $PREFIX/lib/libX11.a"
+if [ -f "$PREFIX/include/X11/Xlib.h" ]; then
+    echo "$PKG_NAME installed successfully at $PREFIX/include/X11/Xlib.h"
 else
     echo "Error: $PKG_NAME not installed"
     exit 1
@@ -71,5 +82,5 @@ fi
 
 # Copy to output
 mkdir -p "$BUILD_TOPDIR/output/$PKG_NAME"
-cp -r "$PREFIX/lib/libX11.a" "$PREFIX/include/X11" "$BUILD_TOPDIR/output/$PKG_NAME/"
+cp -r "$PREFIX/include/X11" "$BUILD_TOPDIR/output/$PKG_NAME/"
 echo "$PKG_NAME $PKG_VERSION has been successfully installed at $PREFIX"
