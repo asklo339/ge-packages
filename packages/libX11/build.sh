@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# packages/libX11/build.sh: Build script for libX11 package
+# packages/libX11/build.sh: Build script for libX11 package for Android ARM64
 
 # Package metadata
 PKG_NAME="libX11"
@@ -46,7 +46,12 @@ export CC="$CC"
 export CFLAGS="$CFLAGS -I$PREFIX/include"
 export LDFLAGS="$LDFLAGS -L$PREFIX/lib"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
-./configure --prefix="$PREFIX" --enable-static --disable-shared || { echo "Error: Failed to configure $PKG_NAME"; exit 1; }
+./configure \
+    --prefix="$PREFIX" \
+    --host=aarch64-linux-android \
+    --enable-static \
+    --disable-shared \
+    || { echo "Error: Failed to configure $PKG_NAME"; exit 1; }
 
 echo "Building $PKG_NAME..."
 make -j"$MAKE_PROCESSES" || { echo "Error: Failed to build $PKG_NAME"; exit 1; }
