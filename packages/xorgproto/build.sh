@@ -14,23 +14,17 @@ PKG_SRC_DIR="$BUILD_DIR/xorgproto/xorgproto-${PKG_VERSION}"
 PKG_BUILD_DIR="$BUILD_DIR/xorgproto"
 
 # Source environment
-if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$BUILD_TOPDIR" ]; then
-    echo "Error: PREFIX, SOURCES_DIR, BUILD_DIR, or BUILD_TOPDIR not set. Source prop.sh first."
+if [ -z "$PREFIX" ] || [ -z "$SOURCES_DIR" ] || [ -z "$BUILD_DIR" ]; then
+    echo "Error: PREFIX, SOURCES_DIR, or BUILD_DIR not set. Source prop.sh first."
     exit 1
 fi
 
-# Path to Meson cross file (relative to repository root)
-CROSS_FILE="$BUILD_TOPDIR/cross-aarch64-linux-android.ini"
+# Path to Meson cross file
+CROSS_FILE="/root/.package-builder/cross-aarch64-linux-android.ini"
 
 # Check if Meson and Ninja are installed
 if ! command -v meson >/dev/null 2>&1 || ! command -v ninja >/dev/null 2>&1; then
     echo "Error: Meson and Ninja are required. Install them first (e.g., pip install meson ninja)."
-    exit 1
-fi
-
-# Check if cross file exists
-if [ ! -f "$CROSS_FILE" ]; then
-    echo "Error: Meson cross file $CROSS_FILE not found."
     exit 1
 fi
 
@@ -61,7 +55,7 @@ meson setup "$PKG_BUILD_DIR" \
     --prefix="$PREFIX" \
     --cross-file="$CROSS_FILE" \
     -Ddefault_library=static \
-    || { echo "Error: Failed to configure $PKG_NAME"; cat "$PKG_BUILD_DIR/meson-logs/meson-log.txt"; exit 1; }
+    || { echo "Error: Failed to configure $PKG_NAME"; exit 1; }
 
 # Build
 echo "Building $PKG_NAME..."
