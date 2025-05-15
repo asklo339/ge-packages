@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wget unzip tar xz-utils
+          sudo apt-get install -y curl wget unzip tar xz-utils meson
 
       # Ensure scripts are executable
       - name: Set script permissions
