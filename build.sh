@@ -70,6 +70,7 @@ setup_dirs() {
     mkdir -p "$SOURCES_DIR" "$BUILD_DIR"
     echo "Sources directory created at $SOURCES_DIR"
     echo "Build directory created at $BUILD_DIR"
+    sudo cp -r cross-aarch64-linux-android.ini $HOME/.package-builder
 }
 
 # Build a single package
